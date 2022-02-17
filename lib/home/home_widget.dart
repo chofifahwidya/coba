@@ -1,7 +1,9 @@
 import '../auth/auth_util.dart';
+import '../backend/firebase_storage/storage.dart';
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../flutter_flow/flutter_flow_util.dart';
 import '../flutter_flow/flutter_flow_widgets.dart';
+import '../flutter_flow/upload_media.dart';
 import '../sign_in_page/sign_in_page_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +16,7 @@ class HomeWidget extends StatefulWidget {
 }
 
 class _HomeWidgetState extends State<HomeWidget> {
+  String uploadedFileUrl = '';
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -28,18 +31,78 @@ class _HomeWidgetState extends State<HomeWidget> {
             alignment: AlignmentDirectional(0, 0),
             child: Column(
               mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFEEEEEE),
-                  ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 10),
                   child: Image.network(
-                    'https://picsum.photos/seed/614/600',
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
+                    valueOrDefault<String>(
+                      uploadedFileUrl,
+                      'Cg5JbWFnZV92ZGNiM3pwNRgHIpEBMkAKImh0dHBzOi8vcGljc3VtLnBob3Rvcy9zZWVkLzc3OS82MDAQARgCIhYKCQkAAAAAAADwfxIJCQAAAAAAAHlAWgkhAAAAAAAAJECaAT4IBggBKjgIBxIPQnV0dG9uX2lzbDRya2IwGiMKGQoXVVBMT0FERURfTUVESUFfVkFSSUFCTEUQAzgDOAQ4CvoDAGIA',
+                    ),
+                    width: double.infinity,
+                    height: 400,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 100),
+                  child: FFButtonWidget(
+                    onPressed: () async {
+                      final selectedMedia =
+                          await selectMediaWithSourceBottomSheet(
+                        context: context,
+                        allowPhoto: true,
+                        backgroundColor:
+                            FlutterFlowTheme.of(context).primaryColor,
+                        textColor: FlutterFlowTheme.of(context).tertiaryColor,
+                      );
+                      if (selectedMedia != null &&
+                          validateFileFormat(
+                              selectedMedia.storagePath, context)) {
+                        showUploadMessage(
+                          context,
+                          'Uploading file...',
+                          showLoading: true,
+                        );
+                        final downloadUrl = await uploadData(
+                            selectedMedia.storagePath, selectedMedia.bytes);
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        if (downloadUrl != null) {
+                          setState(() => uploadedFileUrl = downloadUrl);
+                          showUploadMessage(
+                            context,
+                            'Success!',
+                          );
+                        } else {
+                          showUploadMessage(
+                            context,
+                            'Failed to upload media',
+                          );
+                          return;
+                        }
+                      }
+                    },
+                    text: 'Take Picture',
+                    icon: Icon(
+                      Icons.add_circle,
+                      size: 15,
+                    ),
+                    options: FFButtonOptions(
+                      width: 200,
+                      height: 40,
+                      color: FlutterFlowTheme.of(context).primaryColor,
+                      textStyle:
+                          FlutterFlowTheme.of(context).subtitle2.override(
+                                fontFamily: 'Poppins',
+                                color: Colors.white,
+                              ),
+                      borderSide: BorderSide(
+                        color: Colors.transparent,
+                        width: 1,
+                      ),
+                      borderRadius: 12,
+                    ),
                   ),
                 ),
                 FFButtonWidget(
